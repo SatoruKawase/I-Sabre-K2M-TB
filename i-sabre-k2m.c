@@ -49,11 +49,18 @@ static int snd_tb_i_sabre_k2m_hw_params(
 {
 	struct snd_soc_pcm_runtime *rtd     = substream->private_data;
 	struct snd_soc_dai         *cpu_dai = rtd->cpu_dai;
-	int bclk_ratio;
+	unsigned int mclk;
+	unsigned int mclk_fs = 512;
+	int ret = 0;
 
-	bclk_ratio = snd_pcm_format_physical_width(
-			params_format(params)) * params_channels(params);
-	return snd_soc_dai_set_bclk_ratio(cpu_dai, bclk_ratio);
+	mclk = params_rate(params) * mclk_fs;
+
+	ret = snd_soc_dai_set_sysclk(cpu_dai, 0, mclk, 0);
+	if (ret && (ret != -ENOTSUPP)) {
+		return ret;
+	}
+
+	return 0;
 }
 
 /* machine stream operations */
